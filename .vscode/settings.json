@@ -1,0 +1,22 @@
+{
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none",
+        "reportShadowedImports": "none"
+    },
+    "python.terminal.activateEnvironment": false,
+    "micropico.openOnStart": true,
+    "python.analysis.typeshedPaths": [
+        "~/.micropico-stubs/included"
+    ],
+    "python.analysis.extraPaths": [
+        "/Users/user/.vscode/extensions/joedevivo.vscode-circuitpython-0.2.0-darwin-arm64/boards/0x2E8A/0x000B",
+        "/Users/user/.vscode/extensions/joedevivo.vscode-circuitpython-0.2.0-darwin-arm64/stubs",
+        "/Users/user/Library/Application Support/Code/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20250503/adafruit-circuitpython-bundle-py-20250503/lib",
+        "~/.micropico-stubs/included"
+    ],
+    "circuitpython.board.version": null,
+    "circuitpython.board.vid": "0x2E8A",
+    "circuitpython.board.pid": "0x000B"
+}
