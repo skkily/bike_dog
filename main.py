@@ -14,7 +14,7 @@ MQTT_USERNAME = '' # 用户名 (公共服务器不需要填)
 MQTT_PASSWORD = '' # 密码 (功能服务器不需要填)
 
 UNIID = 'acucxbse7wer2392nsdfusdv' # 唯一ID, 随便敲一些字符就行, 主要是公共服务器会订阅有冲突问题
-LBS_API = '' # 高德开静态地图定位API, 用自己的API
+LBS_API = '' # 高德静态地图定位API, 用自己申请的API
 # 以下为代码部分, 到此配置完全结束
 
 def read_ini(filename):
@@ -250,7 +250,7 @@ class Bike_Dog(object):
         bt_per = (self.battery.read_u16() / 65535.0) * 100
         self.network_module.mqtt_publish(UNIID +'-req-battery', 0, str(bt_per))
         if bt_per < 74:
-            self.network_module.get(NOTIFY_URL + "自行车看门狗/电池电量低")
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/电池电量低")
 
 
     def cb_LBS(self, *args):
@@ -272,12 +272,12 @@ class Bike_Dog(object):
     def shake_monitor_start(self):
         self.trig.irq(trigger=Pin.IRQ_RISING, handler=self.trig_callback)
         self.trig_stat = True
-        self.network_module.get(NOTIFY_URL + "自行车看门狗/震动检测开启")
+        self.network_module.get(NOTIFY_URL + "爱车看门狗/震动检测开启")
 
     def shake_monitor_stop(self):
         self.trig.irq(None)
         self.trig_stat = False
-        self.network_module.get(NOTIFY_URL + "自行车看门狗/震动检测关闭")
+        self.network_module.get(NOTIFY_URL + "爱车看门狗/震动检测关闭")
 
 
     def trig_callback(self, trig: Pin):
@@ -289,7 +289,7 @@ class Bike_Dog(object):
             self.last_call_time = current_time
             print("[INFO] detect shake")
             # clock = mm.command('AT+CCLK?').decode('utf-8').split('"')[1].split(',')[1].split('+')[0]
-            self.network_module.get(NOTIFY_URL + "自行车看门狗/检测到震动")
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/检测到震动")
 
 
 print('[INFO] your uniid: ' + UNIID)

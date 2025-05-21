@@ -4,7 +4,11 @@
 
 
 
-**安装固件:**
+## 功能配置
+
+### 设置通知与MQTT
+
+### 为硬件安装固件
 
 1. 在vscode中安装 Raspberry Pi Pico 扩展与 IntelliCode 扩展
 
@@ -30,10 +34,40 @@ LBS_API = '' # 高德开静态地图定位API, 用自己的API
 
 4. 点击 Run 验证功能是否正常
 5. 点击 All commands -> Upload Project To Pico
-6. 关闭 VsCode, 验证功能是否正常
+6. 关闭 VsCode, 设备重新上一次电, 验证功能是否正常
+
+### 如何验证功能是否正常?
+
+1. 设备开机会发送通知(爱车看门狗 震动检测开启), 未发送则表示有问题
+2. 摇动设备会发送通知
+3. 验证 MQTT 功能是否正常 (待补充)
+
+## [扩展] IOS 查看/设置 设备
+
+### 快捷指令的设置
+
+点击分享的链接获得快捷指令模版, 在 [填写你自己的UNIID] 中填写好, 验证是否有效.
+
+改好UNIID后如图, 可以添加桌面或者负一屏 (UNIID示例取自 main.py 中的默认值):
+
+![](assets/03.png)
+
+### 快捷指令🔗分享
+
+震动提醒: https://www.icloud.com/shortcuts/cb29e71f1fa84ab0826500942d10e883
+
+查询电量: https://www.icloud.com/shortcuts/9b71ff0aa79f40c9a60abf1565f751ab
+
+位置获取: https://www.icloud.com/shortcuts/a12aa330ff734be7917f60d623da9966
 
 
 
-**PCB原理图:**
+## 硬件相关说明
+
+### 物料表
+
+### PCB原理图:
+
+
 
 ![](assets/02.png)
