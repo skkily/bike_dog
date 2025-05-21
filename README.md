@@ -1,8 +1,10 @@
 基于ML307R与RP2040(树莓派Pico)实现的自行车挪动预警与定位硬件
 
+![截屏2025-05-21 17.17.46](assets/截屏2025-05-21 17.17.46.png)
 
 
-安装固件方案:
+
+**安装固件:**
 
 1. 在vscode中安装 Raspberry Pi Pico 扩展与 IntelliCode 扩展
 
@@ -29,3 +31,9 @@ LBS_API = '' # 高德开静态地图定位API, 用自己的API
 4. 点击 Run 验证功能是否正常
 5. 点击 All commands -> Upload Project To Pico
 6. 关闭 VsCode, 验证功能是否正常
+
+
+
+**PCB原理图:**
+
+![截屏2025-05-21 17.19.54](assets/截屏2025-05-21 17.19.54.png)
