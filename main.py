@@ -75,7 +75,7 @@ class ML307R_MQTT_HTTP(object):
     def rx_server(self, data) -> None:
         ret = self.uart.read()
         if ret is not None:
-            print(ret.decode())
+            print('[INFO] ' + ret.decode())
 
         ret = self.at_command('MQTTREAD','0')
         if ret is not None:
@@ -171,8 +171,8 @@ class ML307R_MQTT_HTTP(object):
 
         self.start_rx_server()
 
-        self.at_command('MLPMCFG','"sleepmode",2,0')
-        self.at_command('MLPMCFG','"delaysleep",2')
+        # self.at_command('MLPMCFG','"sleepmode",2,0')
+        # self.at_command('MLPMCFG','"delaysleep",2')
         time.sleep(0.5)
 
     def mqtt_sub(self, topic, cb):
