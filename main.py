@@ -1,4 +1,4 @@
-from machine import UART, Pin, Timer, ADC
+from machine import UART, Pin, Timer, ADC, PWM
 import time
 import uerrno
 
@@ -66,7 +66,7 @@ class ML307R_MQTT_HTTP(object):
 
     def start_rx_server(self):
         self.rx_reading = True
-        self.timer.init(period=1000, mode=Timer.PERIODIC, callback=self.rx_server)
+        self.timer.init(period=2000, mode=Timer.PERIODIC, callback=self.rx_server)
 
     def stop_rx_server(self):
         self.timer.deinit()
@@ -224,21 +224,23 @@ class Bike_Dog(object):
         self.network_module = ML307R_MQTT_HTTP(1,0)
         self.trig = Pin('GP2', Pin.IN)
         self.trig_stat = False
+        self.beep_auto = False
         self.last_call_time = time.ticks_ms()  # 初始化时间
-        self.shake_monitor_start()
 
-        if JUST_NOTIFY:
-            return
+        if not JUST_NOTIFY:
+            self.network_module.mqtt_link()
+            self.network_module.mqtt_publish(UNIID +'-online', 0, 'online')
 
-        self.network_module.mqtt_link()
-        self.network_module.mqtt_publish(UNIID +'-online', 0, 'online')
+            self.network_module.mqtt_sub(UNIID +'-switch-shake', self.cb_shake_change)
+            self.network_module.mqtt_sub(UNIID +'-get-lbs', self.cb_LBS)
 
-        self.network_module.mqtt_sub(UNIID +'-switch-shake', self.cb_shake_change)
-        self.network_module.mqtt_sub(UNIID +'-get-lbs', self.cb_LBS)
+            self.battery = ADC(26)
+            self.network_module.mqtt_sub(UNIID +'-get-battery', self.cb_BT)
+            self.network_module.mqtt_sub(UNIID +'-beep', self.cb_beep)
+            self.network_module.mqtt_sub(UNIID +'-switch-autobeep', self.cb_autobeep)
 
-        self.battery = ADC(26)
-        self.cb_BT()
-        self.network_module.mqtt_sub(UNIID +'-get-battery', self.cb_BT)
+        self.shake_monitor_start() # 开启震动检测, 同时表示初始化完毕
+        self.check_bettery() # 检测电池电量
 
     def cb_shake_change(self, *args):
         if self.trig_stat:
@@ -246,12 +248,14 @@ class Bike_Dog(object):
         else:
             self.shake_monitor_start()
     
-    def cb_BT(self, *args):
+    def check_bettery(self):
         bt_per = (self.battery.read_u16() / 65535.0) * 100
-        self.network_module.mqtt_publish(UNIID +'-req-battery', 0, str(bt_per))
         if bt_per < 74:
-            self.network_module.get(NOTIFY_URL + "爱车看门狗/电池电量低")
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/电池电量低")     
+        return bt_per
 
+    def cb_BT(self, *args):
+        self.network_module.mqtt_publish(UNIID +'-req-battery', 0, str(self.check_bettery()))
 
     def cb_LBS(self, *args):
         # print('[INFO] get LBS')
@@ -269,6 +273,16 @@ class Bike_Dog(object):
         else:
             self.network_module.mqtt_publish(UNIID +'-req-lbs', 0, "lbs get error, pls retry -> " + locate.decode())
 
+    def cb_beep(self, *args):
+        self.beep(0.2, 3)
+
+    def cb_autobeep(self, *args):
+        self.beep_auto = not self.beep_auto
+        if self.beep_auto:
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/主动蜂鸣打开")
+        else:
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/主动蜂鸣关闭")
+
     def shake_monitor_start(self):
         self.trig.irq(trigger=Pin.IRQ_RISING, handler=self.trig_callback)
         self.trig_stat = True
@@ -279,6 +293,17 @@ class Bike_Dog(object):
         self.trig_stat = False
         self.network_module.get(NOTIFY_URL + "爱车看门狗/震动检测关闭")
 
+    def beep(self, interval_time = 0.5, count = 4):
+        beeper = PWM(Pin(9))
+        beeper.freq(3600)
+        beeper.duty_u16(32767)
+        while count > 0:
+            beeper.freq(3600)
+            time.sleep(interval_time)
+            beeper.freq(3500)
+            time.sleep(interval_time)
+            count = count - 1
+        beeper.deinit()
 
     def trig_callback(self, trig: Pin):
         # print(time.ticks_ms())
@@ -288,6 +313,8 @@ class Bike_Dog(object):
         if diff > 3000:
             self.last_call_time = current_time
             print("[INFO] detect shake")
+            if self.beep_auto:
+                self.beep()
             # clock = mm.command('AT+CCLK?').decode('utf-8').split('"')[1].split(',')[1].split('+')[0]
             self.network_module.get(NOTIFY_URL + "爱车看门狗/检测到震动")
 
