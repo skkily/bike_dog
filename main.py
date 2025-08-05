@@ -15,6 +15,10 @@ MQTT_PASSWORD = '' # 密码 (功能服务器不需要填)
 
 UNIID = 'acucxbse7wer2392nsdfusdv' # 唯一ID, 随便敲一些字符就行, 主要是公共服务器会订阅有冲突问题
 LBS_API = '' # 高德静态地图定位API, 用自己申请的API
+
+# 系统配置部分
+SHAKE_CHECK_TIME = 5000 # 震动检测时间
+BEEP_PIN = 9 # 蜂鸣器引脚
 # 以下为代码部分, 到此配置完全结束
 
 def read_ini(filename):
@@ -251,7 +255,7 @@ class Bike_Dog(object):
     def check_bettery(self):
         bt_per = (self.battery.read_u16() / 65535.0) * 100
         if bt_per < 74:
-            self.network_module.get(NOTIFY_URL + "爱车看门狗/电池电量低")     
+            self.network_module.get(NOTIFY_URL + "爱车看门狗/电池电量低")
         return bt_per
 
     def cb_BT(self, *args):
@@ -279,44 +283,53 @@ class Bike_Dog(object):
     def cb_autobeep(self, *args):
         self.beep_auto = not self.beep_auto
         if self.beep_auto:
+            self.beep()
             self.network_module.get(NOTIFY_URL + "爱车看门狗/主动蜂鸣打开")
         else:
+            self.beep()
             self.network_module.get(NOTIFY_URL + "爱车看门狗/主动蜂鸣关闭")
 
     def shake_monitor_start(self):
+        self.beep()
         self.trig.irq(trigger=Pin.IRQ_RISING, handler=self.trig_callback)
         self.trig_stat = True
         self.network_module.get(NOTIFY_URL + "爱车看门狗/震动检测开启")
 
     def shake_monitor_stop(self):
+        self.beep()
         self.trig.irq(None)
         self.trig_stat = False
         self.network_module.get(NOTIFY_URL + "爱车看门狗/震动检测关闭")
 
-    def beep(self, interval_time = 0.5, count = 4):
-        beeper = PWM(Pin(9))
+    def beep(self, interval_time = 0.1, count = 1):
+        beeper = PWM(Pin(BEEP_PIN))
         beeper.freq(3600)
         beeper.duty_u16(32767)
         while count > 0:
-            beeper.freq(3600)
-            time.sleep(interval_time)
             beeper.freq(3500)
+            time.sleep(interval_time)
+            beeper.freq(3600)
             time.sleep(interval_time)
             count = count - 1
         beeper.deinit()
 
     def trig_callback(self, trig: Pin):
+        self.trig.irq(None) # 关中断, 限制中断进入的频率
         # print(time.ticks_ms())
         current_time = time.ticks_ms()
         diff = time.ticks_diff(current_time, self.last_call_time)
         
-        if diff > 3000:
-            self.last_call_time = current_time
+        if diff > SHAKE_CHECK_TIME:
             print("[INFO] detect shake")
-            if self.beep_auto:
-                self.beep()
-            # clock = mm.command('AT+CCLK?').decode('utf-8').split('"')[1].split(',')[1].split('+')[0]
             self.network_module.get(NOTIFY_URL + "爱车看门狗/检测到震动")
+            if self.beep_auto:
+                self.beep(0.2, 3)
+            # clock = mm.command('AT+CCLK?').decode('utf-8').split('"')[1].split(',')[1].split('+')[0]
+            self.last_call_time = current_time
+
+    def run(self):
+        if self.trig_stat:
+            self.trig.irq(trigger=Pin.IRQ_RISING, handler=self.trig_callback)
 
 
 print('[INFO] your uniid: ' + UNIID)
@@ -325,5 +338,6 @@ print('[INFO] your lbs_api: ' + LBS_API)
 bd = Bike_Dog()
 
 while True:
+    bd.run()
     time.sleep(3)
     
