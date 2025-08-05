@@ -5,9 +5,13 @@
 
 ## 软硬件展示
 
-![](assets/01.png)
+![04](assets/04.PNG)
 
 ![](assets/03.png)
+
+![05](assets/05.jpg)
+
+![](assets/01.png)
 
 ## 计划添加的功能
 
@@ -98,7 +102,9 @@ LBS_API = '' # 高德开静态地图定位API, 用自己的API
 
 位置获取: https://www.icloud.com/shortcuts/a12aa330ff734be7917f60d623da9966
 
+## 定位演示
 
+![06](assets/06.PNG)
 
 ## 硬件相关说明
 
